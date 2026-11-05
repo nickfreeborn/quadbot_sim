@@ -6,33 +6,64 @@ import config
 
 def get_continuous_model():
 
-    M = config.M
-    m = config.m
-    l = config.l
-    I = config.I
-    b = config.b
-    g = config.g
+    M = config.BODY_MASS
+    mw = config.WHEEL_MASS_TOTAL
+    r = config.WHEEL_RADIUS
+    l = config.BODY_COM_HEIGHT
+    I = config.BODY_INERTIA
+    Jw = config.WHEEL_INERTIA_TOTAL
+    g = config.GRAVITY
 
-    delta = (M + m) * (I + m * l**2) - (m * l)**2
+    bs = config.LINEAR_FRICTION
+    bt = config.ANGULAR_FRICTION
+
+    # Effective translational mass
+    Mt = M + mw + Jw / r**2
+
+    # Coupled mass matrix at upright equilibrium
+    mass_matrix = np.array([
+        [Mt, M * l],
+        [M * l, I + M * l**2]
+    ])
+
+    mass_inv = np.linalg.inv(mass_matrix)
+
+    # Linearized acceleration equations
+    dynamics_matrix = np.array([
+        [0.0, -bs, M * g * l, -0.0],
+        [0.0, -0.0, 0.0, -bt]
+    ])
+
+    input_matrix = np.array([
+        [1.0 / r],
+        [-1.0]
+    ])
+
+    # Solve for accelerations
+    acceleration_A = mass_inv @ dynamics_matrix
+    acceleration_B = mass_inv @ input_matrix
 
     A = np.array([
         [0, 1, 0, 0],
-        [0, -b*(I + m*l**2)/delta,
-         -(m**2 * l**2 * g)/delta, 0],
+        acceleration_A[0],
         [0, 0, 0, 1],
-        [0, b*m*l/delta,
-         (M + m)*m*g*l/delta, 0]
-    ])
+        acceleration_A[1]
+    ], dtype=float)
 
     B = np.array([
         [0],
-        [(I + m*l**2)/delta],
+        [acceleration_B[0, 0]],
         [0],
-        [-m*l/delta]
+        [acceleration_B[1, 0]]
     ])
 
-    C = np.eye(4)
-    D = np.zeros((4, 1))
+    # Measurements: wheel position and body angle
+    C = np.array([
+        [1, 0, 0, 0],
+        [0, 0, 1, 0]
+    ])
+
+    D = np.zeros((2, 1))
 
     return A, B, C, D
 

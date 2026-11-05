@@ -6,13 +6,15 @@ import config
 
 def design_lqr(Ad, Bd):
 
-    Q = config.Q
-    R = config.R
-
-    P = solve_discrete_are(Ad, Bd, Q, R)
+    P = solve_discrete_are(
+        Ad,
+        Bd,
+        config.Q,
+        config.R
+    )
 
     K = np.linalg.solve(
-        R + Bd.T @ P @ Bd,
+        config.R + Bd.T @ P @ Bd,
         Bd.T @ P @ Ad
     )
 
@@ -21,13 +23,12 @@ def design_lqr(Ad, Bd):
 
 def calculate_control(K, state):
 
-    u = -K @ state
+    torque = -K @ state
 
-    # Motor force saturation
-    u = np.clip(
-        u,
-        -config.MAX_FORCE,
-        config.MAX_FORCE
+    torque = np.clip(
+        torque,
+        -config.MAX_TORQUE,
+        config.MAX_TORQUE
     )
 
-    return float(u[0])
+    return float(torque[0])

@@ -1,20 +1,36 @@
 import numpy as np
 
-# Physical parameters
-M = 0.5       # Cart mass (kg)
-m = 0.2       # Pendulum mass (kg)
-l = 0.3       # COM distance from pivot (m)
-I = 0.006     # Pendulum inertia about COM (kg m^2)
-b = 0.1       # Cart friction (N s/m)
-g = 9.81      # Gravity (m/s^2)
+# Robot physical parameters
+BODY_MASS = 0.50       # kg
 
-# Simulation parameters
-DT = 0.002          # 500 Hz
-SIM_TIME = 5.0
+# Wheel properties
+WHEEL_MASS_TOTAL = 0.08       # kg, combined mass of both wheels
+WHEEL_DIAMETER = 0.065        # m
+WHEEL_RADIUS = WHEEL_DIAMETER / 2
 
-# LQR weighting matrices
-Q = np.diag([1.0, 0.1, 100.0, 1.0])
+# Approximate wheel inertia (solid discs)
+WHEEL_INERTIA_TOTAL = (
+    0.5 * WHEEL_MASS_TOTAL * WHEEL_RADIUS**2
+)
+
+# Initial assumptions
+BODY_COM_HEIGHT = 0.10  # m, placeholder
+BODY_INERTIA = 0.005    # kg m^2, placeholder
+GRAVITY = 9.81
+LINEAR_FRICTION = 0.1 # N
+ANGULAR_FRICTION = 3 # N
+
+# Simulation
+CONTROL_FREQ = 500.0
+DT = 1.0 / CONTROL_FREQ
+SIM_TIME = 10.0
+
+# BMI088
+IMU_INTERFACE = "SPI"  
+IMU_FREQ = 500.0
+ACCEL_RANGE_G = 6
+GYRO_RANGE_DPS = 500
+
+# LQR
+Q = np.diag([10.0, 1.0, 150.0, 2.0])
 R = np.array([[0.1]])
-
-# Actuator constraints
-MAX_FORCE = 10.0
